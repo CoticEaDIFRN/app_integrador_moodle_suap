@@ -49,7 +49,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'app_integrador_moodle_suap.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATES = [
     {
@@ -67,7 +67,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'app_integrador_moodle_suap.wsgi.application'
+WSGI_APPLICATION = 'wsgi.application'
 
 
 # Database
