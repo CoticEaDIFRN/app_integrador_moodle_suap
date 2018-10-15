@@ -1,5 +1,6 @@
 django==2.1.1
 psycopg2-binary==2.7.5
+ege-django-theme==0.3.3
 
 #dev
 django-extensions==2.1.2
