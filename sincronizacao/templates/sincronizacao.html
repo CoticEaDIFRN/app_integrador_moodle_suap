@@ -1,0 +1,16 @@
+{% extends "admin/base.html" %}
+{% block messages %}
+
+    
+{% endblock messages %}
+
+{% block footer %}
+    <script>
+        var app = new Vue({
+  el: '#app',
+  data: {
+    message: 'Hello Vue!'
+  }
+})
+    </script>
+{% endblock footer %}
