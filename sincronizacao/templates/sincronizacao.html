@@ -1,4 +1,48 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-    duhasduashduashdusa
+    <div id="sincronismo">
+        <h1>
+            {% verbatim %} {{ message }} {% endverbatim %}
+        </h1>
+        <label>CEP</label><input v-model="cep"></input>
+        <button @click="getCEP()">Buscar</button>
+        <ul>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.bairro }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.cep }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.gia }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.ibge }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.localidade }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.logradouro }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.uf }} {% endverbatim %}</li>
+            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.unidade }} {% endverbatim %}</li>
+        </ul>
+    </div>
+{% endblock %}
+
+
+{% block javascript %}
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script>
+        var sincronismo = new Vue({
+            el: '#sincronismo',
+            data: {
+                message: 'aaaaa',
+                cep: null,
+                endereco: null
+            },
+            //template: '#anchored-heading-template',
+            methods: {
+                getCEP() {
+                    var resource = this.$resource('https://viacep.com.br/ws/{cep}/json/');
+                    resource.get({cep: this.cep}).then(response => {
+                        this.endereco = response.body;
+                        console.log(this.endereco);
+                    });
+                }
+            }
+        })
+    </script>
+    
+
+
 {% endblock %}
