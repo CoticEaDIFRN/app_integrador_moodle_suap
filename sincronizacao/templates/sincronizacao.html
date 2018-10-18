@@ -1,21 +1,131 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-    <div id="sincronismo">
-        <h1>
-            {% verbatim %} {{ message }} {% endverbatim %}
-        </h1>
-        <label>CEP</label><input v-model="cep"></input>
-        <button @click="getCEP()">Buscar</button>
-        <ul>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.bairro }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.cep }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.gia }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.ibge }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.localidade }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.logradouro }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.uf }} {% endverbatim %}</li>
-            <li v-if="this.endereco != null">{% verbatim %} {{ this.endereco.unidade }} {% endverbatim %}</li>
-        </ul>
+    <div class="row justify-content-center" id="sincronismo">
+
+        <div class="col-11" v-show="passo == 1">
+            <h2>Meus Diários - Sincronização</h2>
+
+            <label>Cod</label><input v-model="cod"></input>
+            <button @click="getDiarios">Buscar</button><br>
+            <button class="btn btn-primary" @click="navegar(2)">Avançar</button><br><br>
+            <table class="table table-striped table-hover text-left">
+                <caption>Meus Diários - Sincronização</caption>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Código</th>
+                        <th>Curso</th>
+                        <th>Componente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="diario in diarios">
+                        <td><input type="checkbox" @click="getMatriculados(diario.id, $event)"></td>
+                        <td v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></td>
+                        <td v-text="diario.turma.curso.nome"></td>
+                        <td v-text="diario.componente_curricular.descricao"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn btn-primary" @click="navegar(2)">Avançar</button>
+        </div>
+
+        <div class="col-11" v-show="passo == 2">
+            <h2>Sincronização - Seleção</h2>
+            
+            <button class="btn btn-default" @click="navegar(1)">Voltar</button>
+            <button class="btn btn-primary" @click="navegar(3)">Avançar</button>
+
+            <div v-for="diario in selecionados">
+                <hr>
+                <ul class="text-left">
+                    <li v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></li>
+                    <li v-text="diario.turma.curso.nome"></li>
+                    <li v-text="diario.componente_curricular.descricao"></li>
+                </ul>
+                
+                <table class="table table-striped talocalhostble-hover text-left">
+                    <caption>Professores</caption>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nome</th>
+                            <th>Ações - O que será feito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="professor in diario.professores">
+                            <td><input type="checkbox" @click="setProfessorParaSincronizacao(diario.id, diario, professor, $event)"></td>
+                            <td>
+                                ${ professor.nome } <br>
+                                Usuário (${ professor.username }) <br>
+                                Professor ${ professor.tipo } <br>
+                                E-mail ${ professor.email_corporativo } <br>
+                            </td>
+                            <td>
+                                Criar usuário no Moodle<br>
+                                Matricular no diário no Moodle
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="table table-striped talocalhostble-hover text-left">
+                    <caption>Alunos</caption>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Nome</th>
+                            <th>Ações - O que será feito</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="aluno in diario.alunos">
+                            <td><input type="checkbox" @click="setAlunoParaSincronizacao(diario.id, diario, aluno, $event)"></td>
+                            <td>
+                                ${ aluno.nome } <br>
+                                Usuário (${ aluno.username }) <br>
+                                E-mail ${ aluno.email_academico } <br>
+                            </td>
+                            <td>
+                                Criar usuário no Moodle<br>
+                                Matricular no diário no Moodle
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            
+            <button class="btn btn-default" @click="navegar(1)">Voltar</button>
+            <button class="btn btn-primary" @click="navegar(3)">Avançar</button>
+        </div>
+
+        <div class="col-11" v-show="passo == 3">
+            <h2>Sincronização - Resumo</h2>
+            <table class="table table-striped talocalhostble-hover text-left">
+                <caption>Sincronização - Resumo</caption>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Código</th>
+                        <th>Curso</th>
+                        <th>Componente</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr v-for="diario in selecionados">
+                        <td><input type="checkbox"></td>
+                        <td>${ diario.campus.sigla }.${ diario.turma.codigo }.${ diario.componente_curricular.sigla }</td>
+                        <td>${ diario.turma.curso.nome }</td>
+                        <td>${ diario.componente_curricular.descricao }</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="btn btn-default" @click="navegar(2)">Voltar</button>
+            <button class="btn btn-primary" @click="navegar(3)">Sinzonizar</button>
+        </div>
+
     </div>
 {% endblock %}
 
@@ -25,24 +135,77 @@
     <script>
         var sincronismo = new Vue({
             el: '#sincronismo',
+            delimiters: ['${', '}'],
             data: {
-                message: 'aaaaa',
-                cep: null,
-                endereco: null
+                passo: 1,
+                message: 'Diarios',
+                cod: 1,
+                diarios: {},
+                selecionados: {},
+                paraSincronizacao: {}
             },
-            //template: '#anchored-heading-template',
+            created() {
+                this.getDiarios();
+            },
+            watch: {},
             methods: {
-                getCEP() {
-                    var resource = this.$resource('https://viacep.com.br/ws/{cep}/json/');
-                    resource.get({cep: this.cep}).then(response => {
-                        this.endereco = response.body;
-                        console.log(this.endereco);
-                    });
+                navegar(numPasso) {
+                    this.passo = numPasso;
+                },
+                getDiarios() {
+                    this.$http.get(
+                            'http://localhost:8000/integracao/api/v1/suap/diarios',
+                            {params: { cod: this.cod }}
+                        ).then(response => {
+                            this.diarios = response.body.data;
+                        });
+                },
+                getMatriculados(diario, event) {
+                    if (event.target.checked == true) {
+                        this.$http.get(
+                            'http://localhost:8000/integracao/api/v1/suap/matriculados',
+                            {params: { diario: diario }}
+                        ).then(response => {
+                            this.selecionados[diario] = response.body.data;
+                        });
+                    } else {
+                        delete this.selecionados[diario];
+                    }
+                },
+                setProfessorParaSincronizacao(index, diario, professor, event) {
+                    if (event.target.checked == true) {
+                        this.checkDiarioParaSincronizacao(index, diario);
+                        this.paraSincronizacao[index]['professores'][professor.id] = professor;
+                    } else {
+                        delete this.paraSincronizacao[index]['professores'][professor.id];
+                        this.clearDiarioParaSincronizacao(index);
+                    }
+                },
+                setAlunoParaSincronizacao(index, diario, aluno, event) {
+                    if (event.target.checked == true) {
+                        this.checkDiarioParaSincronizacao(index, diario);
+                        this.paraSincronizacao[index]['alunos'][aluno.id] = aluno;
+                    } else {
+                        delete this.paraSincronizacao[index]['alunos'][aluno.id];
+                        this.clearDiarioParaSincronizacao(index);
+                    }
+                },
+                checkDiarioParaSincronizacao(index, diario) {
+                    if(typeof this.paraSincronizacao[index] === 'undefined' ) {
+                        diario.professores = {}
+                        diario.alunos = {}
+                        this.paraSincronizacao[index] = diario;
+                    }
+                },
+                clearDiarioParaSincronizacao(index) {
+                    if (Object.keys(this.paraSincronizacao[index].professores).length === 0
+                        &&
+                        Object.keys(this.paraSincronizacao[index].alunos).length === 0)
+                    {
+                        delete this.paraSincronizacao[index];
+                    }
                 }
             }
         })
     </script>
-    
-
-
 {% endblock %}
