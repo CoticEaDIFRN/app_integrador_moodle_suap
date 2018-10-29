@@ -63,7 +63,14 @@
                                 E-mail ${ professor.email_corporativo } <br>
                             </td>
                             <td>
-                                Criar usuário no Moodle<br>
+                                <span v-if="professor.exist_in_moodle">
+                                    Usuário já existe no Moodle <i class="material-icons">check_circle_outline</i>
+                                </span>
+                                <span v-else="professor.exist_in_moodle">
+                                    Criar usuário no Moodle <i class="material-icons">sync</i>
+                                </span>
+                                <br>
+
                                 Matricular no diário no Moodle
                             </td>
                         </tr>
@@ -88,7 +95,13 @@
                                 E-mail ${ aluno.email_academico } <br>
                             </td>
                             <td>
-                                Criar usuário no Moodle<br>
+                                <div v-if="aluno.exist_in_moodle == true">
+                                    Usuário já existe no Moodle <i class="material-icons">check_circle_outline</i>
+                                </div>
+                                <div v-else>
+                                    Criar usuário no Moodle <i class="material-icons">sync</i>
+                                </div>
+                                <br>
                                 Matricular no diário no Moodle
                             </td>
                         </tr>
@@ -103,27 +116,59 @@
 
         <div class="col-11" v-show="passo == 3">
             <h2>Sincronização - Resumo</h2>
-            <table class="table table-striped talocalhostble-hover text-left">
-                <caption>Sincronização - Resumo</caption>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Código</th>
-                        <th>Curso</th>
-                        <th>Componente</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="diario in selecionados">
-                        <td><input type="checkbox"></td>
-                        <td>${ diario.campus.sigla }.${ diario.turma.codigo }.${ diario.componente_curricular.sigla }</td>
-                        <td>${ diario.turma.curso.nome }</td>
-                        <td>${ diario.componente_curricular.descricao }</td>
-                    </tr>
-                </tbody>
-            </table>
+            
             <button class="btn btn-default" @click="navegar(2)">Voltar</button>
-            <button class="btn btn-primary" @click="navegar(3)">Sinzonizar</button>
+            <button class="btn btn-primary" @click="navegar(2)">Sincronizar</button>
+
+            <div v-for="diario in listaSincronizacao">
+                <hr>
+                <ul class="text-left">
+                    <li v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></li>
+                    <li v-text="diario.turma.curso.nome"></li>
+                    <li v-text="diario.componente_curricular.descricao"></li>
+                </ul>
+                
+                <table class="table table-striped talocalhostble-hover text-left">
+                    <caption>Professores</caption>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="professor in diario.professores">
+                            <td>
+                                ${ professor.nome } <br>
+                                Usuário (${ professor.username }) <br>
+                                Professor ${ professor.tipo } <br>
+                                E-mail ${ professor.email_corporativo } <br>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <table class="table table-striped talocalhostble-hover text-left">
+                    <caption>Alunos</caption>
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="aluno in diario.alunos">
+                            <td>
+                                ${ aluno.nome } <br>
+                                Usuário (${ aluno.username }) <br>
+                                E-mail ${ aluno.email_academico } <br>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+            
+            <button class="btn btn-default" @click="navegar(2)">Voltar</button>
+            <button class="btn btn-primary" @click="navegar(2)">Sincronizar</button>
         </div>
 
     </div>
@@ -142,7 +187,7 @@
                 cod: 1,
                 diarios: {},
                 selecionados: {},
-                paraSincronizacao: {}
+                listaSincronizacao: {},
             },
             created() {
                 this.getDiarios();
@@ -166,43 +211,117 @@
                             'http://localhost:8000/integracao/api/v1/suap/matriculados',
                             {params: { diario: diario }}
                         ).then(response => {
+                            // coleta dados do moodle para os professores
+                            for (i = 0; i < response.body.data.professores.length; i++) {
+                                this.getStatusUsuarioMoodle(response.body.data.professores[i].username, response.body.data.professores[i]);
+                            }
+                            // coleta dados do moodle para os professores
+                            for (i = 0; i < response.body.data.alunos.length; i++) {
+                                this.getStatusUsuarioMoodle(response.body.data.alunos[i].username, response.body.data.alunos[i]);
+                            }
                             this.selecionados[diario] = response.body.data;
                         });
                     } else {
                         delete this.selecionados[diario];
                     }
                 },
+                getStatusUsuarioMoodle(username, obj) {
+                    this.$http.get(
+                            'http://localhost:8000/integracao/api/v1/moodle/buscar_usuario',
+                            { params: { username: username } }
+                        ).then(response => {
+                            if(response.body.data == null) {
+                                obj.exist_in_moodle = false;
+                            } else {
+                                obj.exist_in_moodle = true;
+                            }
+                        });
+                },
                 setProfessorParaSincronizacao(index, diario, professor, event) {
                     if (event.target.checked == true) {
                         this.checkDiarioParaSincronizacao(index, diario);
-                        this.paraSincronizacao[index]['professores'][professor.id] = professor;
+                        this.listaSincronizacao[index]['professores'][professor.id] = this.getObjProfessor(professor);
                     } else {
-                        delete this.paraSincronizacao[index]['professores'][professor.id];
+                        delete this.listaSincronizacao[index]['professores'][professor.id];
                         this.clearDiarioParaSincronizacao(index);
                     }
                 },
                 setAlunoParaSincronizacao(index, diario, aluno, event) {
                     if (event.target.checked == true) {
                         this.checkDiarioParaSincronizacao(index, diario);
-                        this.paraSincronizacao[index]['alunos'][aluno.id] = aluno;
+                        this.listaSincronizacao[index]['alunos'][aluno.id] = this.getObjAluno(aluno);
                     } else {
-                        delete this.paraSincronizacao[index]['alunos'][aluno.id];
+                        delete this.listaSincronizacao[index]['alunos'][aluno.id];
                         this.clearDiarioParaSincronizacao(index);
                     }
                 },
                 checkDiarioParaSincronizacao(index, diario) {
-                    if(typeof this.paraSincronizacao[index] === 'undefined' ) {
-                        diario.professores = {}
-                        diario.alunos = {}
-                        this.paraSincronizacao[index] = diario;
+                    if(typeof this.listaSincronizacao[index] === 'undefined' ) {
+                        novoDiario = this.getObjDiario(diario);
+                        novoDiario.professores = {};
+                        novoDiario.alunos = {};
+                        this.listaSincronizacao[index] = novoDiario;
                     }
                 },
                 clearDiarioParaSincronizacao(index) {
-                    if (Object.keys(this.paraSincronizacao[index].professores).length === 0
+                    if (Object.keys(this.listaSincronizacao[index].professores).length === 0
                         &&
-                        Object.keys(this.paraSincronizacao[index].alunos).length === 0)
+                        Object.keys(this.listaSincronizacao[index].alunos).length === 0)
                     {
-                        delete this.paraSincronizacao[index];
+                        delete this.listaSincronizacao[index];
+                    }
+                },
+                getObjDiario(diario) {
+                    let obj = new Object();
+                    obj.id = null;
+                    obj.codigo = null;
+                    obj.campus = null
+                    obj.componente_curricular = null
+                    obj.turma = null;
+                    obj.professores = {};
+                    obj.alunos = {};
+
+                    if (typeof diario != undefined ) {
+                        return Object.assign(obj, diario);
+                    } else {
+                        return this.obj;
+                    }
+                },
+                getObjAluno(aluno) {
+                    let obj = new Object();
+                    obj.id = null;
+                    obj.diario_id = null;
+                    obj.email_academico = null
+                    obj.email_secundario = null
+                    obj.nome = null;
+                    obj.polo = { id: null, nome: null };
+                    obj.status = null;
+                    obj.tipo = null;
+                    obj.username = null;
+                    obj.exist_in_moodle = null;
+
+                    if (typeof aluno != undefined ) {
+                        return Object.assign(obj, aluno);
+                    } else {
+                        return obj;
+                    }
+                },
+                getObjProfessor(professor) {
+                    let obj = new Object();
+                    obj.id = null;
+                    obj.diario_id = null;
+                    obj.email_corporativo = null
+                    obj.email_secundario = null
+                    obj.nome = null;
+                    obj.status = null;
+                    obj.tipo = null;
+                    obj.username = null;
+                    obj.exist_in_moodle = null;
+
+                    if (typeof professor != undefined ) {
+                        return Object.assign(obj, professor);
+                    } else {
+                        return obj;
                     }
                 }
             }
