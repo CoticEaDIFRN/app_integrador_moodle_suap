@@ -1,182 +1,177 @@
 {% extends "admin/base_site.html" %}
-{% block content %}
-    <div class="row justify-content-center" id="sincronismo">
-
-        <div class="col-11" v-show="passo == 1">
-            <h2>Meus Diários - Sincronização</h2>
-
+{% block content %}  
+    <div  class="md-alignment-center col-12" id="sincronismo">
+        
+        <p>
             <label>Cod</label><input v-model="cod"></input>
-            <button @click="getDiarios">Buscar</button><br>
-            <button class="btn btn-primary" @click="navegar(2)">Avançar</button><br><br>
-            <table class="table table-striped table-hover text-left">
-                <caption>Meus Diários - Sincronização</caption>
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th>Código</th>
-                        <th>Curso</th>
-                        <th>Componente</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr v-for="diario in diarios">
-                        <td><input type="checkbox" @click="getMatriculados(diario.id, $event)"></td>
-                        <td v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></td>
-                        <td v-text="diario.turma.curso.nome"></td>
-                        <td v-text="diario.componente_curricular.descricao"></td>
-                    </tr>
-                </tbody>
-            </table>
-            <button class="btn btn-primary" @click="navegar(2)">Avançar</button>
-        </div>
-
-        <div class="col-11" v-show="passo == 2">
-            <h2>Sincronização - Seleção</h2>
+            <button @click="getDiarios">Buscar</button>
+        </p>
+    
+        <md-steppers :md-active-step.sync="active" md-linear style="min-width: 10%;" md-alternative>
             
-            <button class="btn btn-default" @click="navegar(1)">Voltar</button>
-            <button class="btn btn-primary" @click="navegar(3)">Avançar</button>
 
-            <div v-for="diario in selecionados">
-                <hr>
-                <ul class="text-left">
-                    <li v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></li>
-                    <li v-text="diario.turma.curso.nome"></li>
-                    <li v-text="diario.componente_curricular.descricao"></li>
-                </ul>
-                
-                <table class="table table-striped talocalhostble-hover text-left">
-                    <caption>Professores</caption>
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Nome</th>
-                            <th>Ações - O que será feito</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="professor in diario.professores">
-                            <td><input type="checkbox" @click="setProfessorParaSincronizacao(diario.id, diario, professor, $event)"></td>
-                            <td>
-                                ${ professor.nome } <br>
-                                Usuário (${ professor.username }) <br>
-                                Professor ${ professor.tipo } <br>
-                                E-mail ${ professor.email_corporativo } <br>
-                            </td>
-                            <td>
-                                <span v-if="professor.exist_in_moodle">
-                                    Usuário já existe no Moodle <i class="material-icons">check_circle_outline</i>
-                                </span>
-                                <span v-else="professor.exist_in_moodle">
-                                    Criar usuário no Moodle <i class="material-icons">sync</i>
-                                </span>
-                                <br>
+            <md-step id="first" md-label="Meus Diários" :md-done.sync="first">
+                <md-toolbar :md-elevation="1">
+                    <span class="md-title">Diários</span>
+                </md-toolbar>
+                <md-content>
+                    <br>
+                    <p>Selecione os diários que você deseja sincronizar.</p>
+                </md-content>
+                <md-list class="md-triple-line">
+                    <md-subheader class="md-primary">Meus Diários</md-subheader>
+                    <div v-for="diario in diarios" class="viewport">
+                        <md-list-item>
+                            <input type="checkbox" @click="getMatriculados(diario.id, $event)" style="margin-right: 10px;">
+                            <div class="md-list-item-text">
+                                <span>${ diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla }</span>
+                                <span>${ diario.turma.curso.nome }</span>
+                                <p>${ diario.componente_curricular.descricao }</p>
+                            </div>
+                        </md-list-item>
+                        <md-divider class="md-inset"></md-divider>
+                    </div>
+                </md-list>
+                <md-button class="md-raised md-primary" @click="setDone('first', 'second')">
+                    Continuar
+                    <md-icon>navigate_next</md-icon>
+                </md-button>
+            </md-step>
 
-                                Matricular no diário no Moodle
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <md-step id="second" md-label="Seleção" md-description="Alunos e Professores" :md-error="secondStepError" :md-done.sync="second">
+                <div v-for="diario in selecionados" class="viewport">
+                    <md-toolbar :md-elevation="1">
+                        <span class="md-title">${ diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla }</span>
+                    </md-toolbar>
+                    <md-content>
+                        <br>
+                        <ul class="text-left">
+                            <li v-text="diario.turma.curso.nome"></li>
+                            <li v-text="diario.componente_curricular.descricao"></li>
+                        </ul>
+                    </md-content>
 
-                <table class="table table-striped talocalhostble-hover text-left">
-                    <caption>Alunos</caption>
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Nome</th>
-                            <th>Ações - O que será feito</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="aluno in diario.alunos">
-                            <td><input type="checkbox" @click="setAlunoParaSincronizacao(diario.id, diario, aluno, $event)"></td>
-                            <td>
-                                ${ aluno.nome } <br>
-                                Usuário (${ aluno.username }) <br>
-                                E-mail ${ aluno.email_academico } <br>
-                            </td>
-                            <td>
-                                <div v-if="aluno.exist_in_moodle == true">
-                                    Usuário já existe no Moodle <i class="material-icons">check_circle_outline</i>
+                    <md-list class="md-triple-line">
+                        <md-subheader class="md-primary">Professores</md-subheader>
+                        <div v-for="professor in diario.professores">
+                            <md-list-item>
+                                <input type="checkbox" @click="setProfessorParaSincronizacao(diario.id, diario, professor, $event)" style="margin-right: 10px;">
+                                <md-avatar>
+                                    <img src="https://placeimg.com/40/40/people/1" alt="People">
+                                </md-avatar>
+
+                                <div class="md-list-item-text">
+                                    <span>${ professor.nome } (${ professor.username })</span>
+                                    <span>Professor ${ professor.tipo }</span>
+                                    <p>E-mail: ${ professor.email_corporativo }</p>
                                 </div>
-                                <div v-else>
-                                    Criar usuário no Moodle <i class="material-icons">sync</i>
+
+                                <div class="md-list-action">
+                                    <md-icon class="md-primary">star</md-icon>
+                                    <md-icon>sms</md-icon>
+                                    <md-icon>chat</md-icon>
                                 </div>
-                                <br>
-                                Matricular no diário no Moodle
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                            </md-list-item>
+                            <md-divider class="md-inset"></md-divider>
+                        </div>
+                    </md-list>
+                    <md-list class="md-triple-line">
+                        <md-subheader class="md-primary">Alunos</md-subheader>
+                        <div v-for="aluno in diario.alunos">
+                            <md-list-item>
+                                <input type="checkbox" @click="setAlunoParaSincronizacao(diario.id, diario, aluno, $event)" style="margin-right: 10px;">
+                                <md-avatar>
+                                    <img src="https://placeimg.com/40/40/people/2" alt="People">
+                                </md-avatar>
 
-            </div>
-            
-            <button class="btn btn-default" @click="navegar(1)">Voltar</button>
-            <button class="btn btn-primary" @click="navegar(3)">Avançar</button>
-        </div>
+                                <div class="md-list-item-text">
+                                    <span>${ aluno.nome }</span>
+                                    <span>Usuário: ${ aluno.username }</span>
+                                    <p>E-mail: ${ aluno.email_academico }</p>
+                                </div>
 
-        <div class="col-11" v-show="passo == 3">
-            <h2>Sincronização - Resumo</h2>
-            
-            <button class="btn btn-default" @click="navegar(2)">Voltar</button>
-            <button class="btn btn-primary" @click="navegar(2)">Sincronizar</button>
+                                <div class="md-list-action">
+                                    <md-icon class="md-primary">star</md-icon>
+                                    <md-icon>sms</md-icon>
+                                    <md-icon>chat</md-icon>
+                                </div>
+                            </md-list-item>
+                            <md-divider class="md-inset"></md-divider>
+                        </div>
+                    </md-list>
+                </div>
+                <md-button class="md-raised md-primary" @click="setDone('second', 'first')">
+                    <md-icon>keyboard_arrow_left</md-icon>
+                    Voltar
+                </md-button>
+                <md-button class="md-raised md-primary" @click="setDone('second', 'third')">
+                    Continuar
+                    <md-icon>navigate_next</md-icon>
+                </md-button>
+                <!--<md-button class="md-raised md-primary" @click="setError()">Set error!</md-button>-->
+            </md-step>
 
-            <div v-for="diario in listaSincronizacao">
-                <hr>
-                <ul class="text-left">
-                    <li v-text="diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla"></li>
-                    <li v-text="diario.turma.curso.nome"></li>
-                    <li v-text="diario.componente_curricular.descricao"></li>
-                </ul>
-                
-                <table class="table table-striped talocalhostble-hover text-left">
-                    <caption>Professores</caption>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="professor in diario.professores">
-                            <td>
-                                ${ professor.nome } <br>
-                                Usuário (${ professor.username }) <br>
-                                Professor ${ professor.tipo } <br>
-                                E-mail ${ professor.email_corporativo } <br>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <md-step id="third" md-label="Sincronização" :md-done.sync="third">
+                <div v-for="diario in listaSincronizacao" class="viewport">
+                    <md-toolbar :md-elevation="1">
+                        <span class="md-title">${ diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla }</span>
+                    </md-toolbar>
+                    <md-content>
+                        <br>
+                        <ul class="text-left">
+                            <li v-text="diario.turma.curso.nome"></li>
+                            <li v-text="diario.componente_curricular.descricao"></li>
+                        </ul>
+                    </md-content>
 
-                <table class="table table-striped talocalhostble-hover text-left">
-                    <caption>Alunos</caption>
-                    <thead>
-                        <tr>
-                            <th>Nome</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="aluno in diario.alunos">
-                            <td>
-                                ${ aluno.nome } <br>
-                                Usuário (${ aluno.username }) <br>
-                                E-mail ${ aluno.email_academico } <br>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                    <md-list class="md-triple-line">
+                        <md-subheader class="md-primary">Professores</md-subheader>
+                        <div v-for="professor in diario.professores">
+                            <md-list-item>
+                                <md-avatar>
+                                    <img src="https://placeimg.com/40/40/people/1" alt="People">
+                                </md-avatar>
 
-            </div>
-            
-            <button class="btn btn-default" @click="navegar(2)">Voltar</button>
-            <button class="btn btn-primary" @click="navegar(2)">Sincronizar</button>
-        </div>
+                                <div class="md-list-item-text">
+                                    <span>${ professor.nome } (${ professor.username })</span>
+                                    <span>Professor ${ professor.tipo }</span>
+                                    <p>E-mail: ${ professor.email_corporativo }</p>
+                                </div>
+                            </md-list-item>
+                            <md-divider class="md-inset"></md-divider>
+                        </div>
+                    </md-list>
+                    <md-list class="md-triple-line">
+                        <md-subheader class="md-primary">Alunos</md-subheader>
+                        <div v-for="aluno in diario.alunos">
+                            <md-list-item>
+                                <md-avatar>
+                                    <img src="https://placeimg.com/40/40/people/2" alt="People">
+                                </md-avatar>
 
+                                <div class="md-list-item-text">
+                                    <span>${ aluno.nome }</span>
+                                    <span>Usuário: ${ aluno.username }</span>
+                                    <p>E-mail: ${ aluno.email_academico }</p>
+                                </div>
+                            </md-list-item>
+                            <md-divider class="md-inset"></md-divider>
+                        </div>
+                    </md-list>
+                </div>
+                <md-button class="md-raised md-primary" @click="setDone('third', 'second')">
+                    <md-icon>keyboard_arrow_left</md-icon>
+                    Voltar
+                </md-button>
+                <md-button class="md-raised md-primary" @click="setDone('third')">
+                    Sincronizar
+                    <md-icon>sync</md-icon>
+                </md-button>
+            </md-step>           
+        </md-steppers>
     </div>
 {% endblock %}
-
-
 {% block javascript %}
-    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
     <script>
         var sincronismo = new Vue({
             el: '#sincronismo',
@@ -188,12 +183,30 @@
                 diarios: {},
                 selecionados: {},
                 listaSincronizacao: {},
+                active: 'first',
+                first: false,
+                second: false,
+                third: false,
+                secondStepError: null,
+                notification: ['sound', 'vibrate']
             },
             created() {
                 this.getDiarios();
             },
             watch: {},
             methods: {
+                setDone (id, index) {
+        this[id] = true
+
+        this.secondStepError = null
+
+        if (index) {
+          this.active = index
+        }
+      },
+      setError () {
+        this.secondStepError = 'This is an error!'
+      },
                 navegar(numPasso) {
                     this.passo = numPasso;
                 },
