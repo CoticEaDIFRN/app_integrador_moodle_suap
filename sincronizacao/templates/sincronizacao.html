@@ -1,10 +1,28 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
-    <div class="row justify-content-center" id="sincronismo">
+    <div class="Sincronizar Diários" >
+        <md-steppers :md-active-step.sync="active" md-linear>
+            <md-step id="primeiro" md-label="Meus Diários" :md-done.sync="primeiro">
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat nulla.</p>
+            <md-button class="md-raised md-primary" @click="setDone('first', 'second')">Próximo</md-button>
+            </md-step>
 
+            <md-step id="segundo" md-label="Selecionar" :md-error="secondStepError" :md-done.sync="segundo">
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat nulla.</p>
+                <md-button class="md-raised md-primary" @click="setDone('second', 'third')">Continue</md-button>
+                <md-button class="md-raised md-primary" @click="setError()">Próximo</md-button>
+            </md-step>
+
+            <md-step id="terceiro" md-label="Sincronização" :md-done.sync="terceiro">
+                <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Molestias doloribus eveniet quaerat modi cumque quos sed, temporibus nemo eius amet aliquid, illo minus blanditiis tempore, dolores voluptas dolore placeat nulla.</p>
+                <md-button class="md-raised md-primary" @click="setDone('third')">Concluir</md-button>
+            </md-step>
+            </md-steppers>
+        </div>
+
+    <div class="row justify-content-center" id="sincronismo">
         <div class="col-11" v-show="passo == 1">
             <h2>Meus Diários - Sincronização</h2>
-
             <label>Cod</label><input v-model="cod"></input>
             <button @click="getDiarios">Buscar</button><br>
             <button class="btn btn-primary" @click="navegar(2)">Avançar</button><br><br>
