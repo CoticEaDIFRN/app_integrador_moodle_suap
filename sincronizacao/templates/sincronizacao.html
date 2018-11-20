@@ -199,6 +199,11 @@
 {% endblock %}
 {% block javascript %}
     <script>
+        let api_protocol = "http";
+        let api_port = "8080";
+        let api_name = "localhost";
+        let uri = api_protocol.concat('://').concat(api_name).concat(":").concat(api_port);
+
         var sincronismo = new Vue({
             el: '#sincronismo',
             delimiters: ['${', '}'],
@@ -238,7 +243,7 @@
                 },
                 getDiarios() {
                     this.$http.get(
-                            'http://localhost:8000/integracao/api/v1/suap/diarios',
+                            uri.concat('/integracao/api/v1/suap/diarios'),
                             {params: { cod: this.cod }}
                         ).then(response => {
                             this.diarios = response.body.data;
