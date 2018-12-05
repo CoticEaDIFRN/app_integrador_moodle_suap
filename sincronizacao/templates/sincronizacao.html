@@ -232,7 +232,7 @@
                 getMatriculados(diario, event) {
                     if (event.target.checked == true) {
                         this.$http.get(
-                            'http://localhost:8000/integracao/api/v1/suap/matriculados',
+                            uri.concat('/integracao/api/v1/suap/matriculados'),
                             {params: { diario: diario }}
                         ).then(response => {
                             // coleta dados do moodle para os professores
@@ -251,7 +251,7 @@
                 },
                 getStatusUsuarioMoodle(username, obj) {
                     this.$http.get(
-                            'http://localhost:8000/integracao/api/v1/moodle/buscar_usuario',
+                            uri.concat('/integracao/api/v1/moodle/buscar_usuario'),
                             { params: { username: username } }
                         ).then(response => {
                             if(response.body.data == null) {
