@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
     <v-app>
-        <div  class="md-alignment-center col-12" id="sincronismo">
+        <div class="md-alignment-center col-12" id="sincronismo">
             <p>
                 <label>Cod</label><input v-model="cod"></input>
                 <button @click="getDiarios">Buscar</button>
@@ -16,11 +16,13 @@
                         <br>
                         <span class="md-title">Diários</span>
                         <hr>
-                        <p>Selecione os diários que você deseja sincronizar.</p>
-                        <hr>
                     </md-content>
                 
                     <md-list class="md-triple-line">
+                        <label for="select-all">
+                            <input type="checkbox" id="select-all"> Selecionar todos
+                        </label>
+                        <hr>
                         <md-subheader class="md-primary">Meus Diários</md-subheader>
                         <div v-for="diario in diarios" class="viewport">
                             <md-list-item>
