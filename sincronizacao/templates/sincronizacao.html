@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% block content %}
     <v-app>
-        <div  class="md-alignment-center col-12" id="sincronismo">
+        <div class="md-alignment-center col-12" id="sincronismo">
             <p>
                 <label>Cod</label><input v-model="cod"></input>
                 <button @click="getDiarios">Buscar</button>
@@ -16,11 +16,13 @@
                         <br>
                         <span class="md-title">Diários</span>
                         <hr>
-                        <p>Selecione os diários que você deseja sincronizar.</p>
-                        <hr>
                     </md-content>
                 
                     <md-list class="md-triple-line">
+                        <label>
+                            <input type="checkbox"> Selecionar todos
+                        </label>
+                        <hr>
                         <md-subheader class="md-primary">Meus Diários</md-subheader>
                         <div v-for="diario in diarios" class="viewport">
                             <md-list-item>
@@ -43,11 +45,13 @@
 
                 <md-step id="second" md-label="Seleção" md-description="Alunos e Professores" :md-error="secondStepError" :md-done.sync="second">
                     <div v-for="diario in selecionados" class="viewport">
-                        <md-toolbar :md-elevation="1">
+                        <!--<md-toolbar :md-elevation="1">
                             <span class="md-title">${ diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla }</span>
-                        </md-toolbar>
+                        </md-toolbar>-->
                         <md-content>
                             <br>
+                            <span class="md-title">${ diario.campus.sigla + '.' + diario.turma.codigo + '.' + diario.componente_curricular.sigla }</span>
+                            <hr>
                             <ul class="text-left">
                                 <li v-text="diario.turma.curso.nome"></li>
                                 <li v-text="diario.componente_curricular.descricao"></li>
@@ -55,14 +59,15 @@
                         </md-content>
 
                         <md-list class="md-triple-line">
+                            <hr>
+                            <label>
+                                <input type="checkbox"> Selecionar todos
+                            </label>
+                            <hr>
                             <md-subheader class="md-primary">Professores</md-subheader>
                             <div v-for="professor in diario.professores">
                                 <md-list-item>
                                     <input type="checkbox" @click="setProfessorParaSincronizacao(diario.id, diario, professor, $event)" style="margin-right: 10px;">
-                                    <md-avatar>
-                                        <img src="https://placeimg.com/40/40/people/1" alt="People">
-                                    </md-avatar>
-
                                     <div class="md-list-item-text">
                                         <span>${ professor.nome } (${ professor.username })</span>
                                         <span>Professor ${ professor.tipo }</span>
@@ -83,9 +88,6 @@
                             <div v-for="aluno in diario.alunos">
                                 <md-list-item>
                                     <input type="checkbox" @click="setAlunoParaSincronizacao(diario.id, diario, aluno, $event)" style="margin-right: 10px;">
-                                    <md-avatar>
-                                        <img src="https://placeimg.com/40/40/people/2" alt="People">
-                                    </md-avatar>
 
                                     <div class="md-list-item-text">
                                         <span>${ aluno.nome }</span>
@@ -131,10 +133,6 @@
                             <md-subheader class="md-primary">Professores</md-subheader>
                             <div v-for="professor in diario.professores">
                                 <md-list-item>
-                                    <md-avatar>
-                                        <img src="https://placeimg.com/40/40/people/1" alt="People">
-                                    </md-avatar>
-
                                     <div class="md-list-item-text">
                                         <span>${ professor.nome } (${ professor.username })</span>
                                         <span>Professor ${ professor.tipo }</span>
@@ -148,10 +146,6 @@
                             <md-subheader class="md-primary">Alunos</md-subheader>
                             <div v-for="aluno in diario.alunos">
                                 <md-list-item>
-                                    <md-avatar>
-                                        <img src="https://placeimg.com/40/40/people/2" alt="People">
-                                    </md-avatar>
-
                                     <div class="md-list-item-text">
                                         <span>${ aluno.nome }</span>
                                         <span>Usuário: ${ aluno.username }</span>
@@ -230,7 +224,7 @@
                 getMatriculados(diario, event) {
                     if (event.target.checked == true) {
                         this.$http.get(
-                            'http://localhost:8000/integracao/api/v1/suap/matriculados',
+                            uri.concat('/integracao/api/v1/suap/matriculados'),
                             {params: { diario: diario }}
                         ).then(response => {
                             // coleta dados do moodle para os professores
@@ -249,7 +243,7 @@
                 },
                 getStatusUsuarioMoodle(username, obj) {
                     this.$http.get(
-                            'http://localhost:8000/integracao/api/v1/moodle/buscar_usuario',
+                            uri.concat('/integracao/api/v1/moodle/buscar_usuario'),
                             { params: { username: username } }
                         ).then(response => {
                             if(response.body.data == null) {
