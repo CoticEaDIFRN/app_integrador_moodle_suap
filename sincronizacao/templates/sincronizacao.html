@@ -2,47 +2,24 @@
 {% block content %}
     <v-app>
         <div  class="md-alignment-center col-12" id="sincronismo">
-            
-            <v-stepper alt-labels>
-                <v-stepper-header>
-                    <v-stepper-step step="3" complete>Ad type</v-stepper-step>
-                    
-                    <v-divider></v-divider>
-                    
-                    <v-stepper-step step="4" complete>Ad style</v-stepper-step>
-                    
-                    <v-divider></v-divider>
-                    
-                    <v-stepper-step :rules="[() => false]" step="5">
-                        Custom channels
-                        <small>Alert message</small>
-                    </v-stepper-step>
-
-                    <v-divider></v-divider>
-
-                    <v-stepper-step step="6">Get code</v-stepper-step>
-                </v-stepper-header>
-            </v-stepper>
-
-
-
-
             <p>
                 <label>Cod</label><input v-model="cod"></input>
                 <button @click="getDiarios">Buscar</button>
             </p>
-        
+            
             <md-steppers :md-active-step.sync="active" md-linear style="min-width: 10%;" md-alternative>
                 
 
                 <md-step id="first" md-label="Meus Diários" :md-done.sync="first">
-                    <md-toolbar :md-elevation="1">
-                        <span class="md-title">Diários</span>
-                    </md-toolbar>
+
                     <md-content>
                         <br>
+                        <span class="md-title">Diários</span>
+                        <hr>
                         <p>Selecione os diários que você deseja sincronizar.</p>
+                        <hr>
                     </md-content>
+                
                     <md-list class="md-triple-line">
                         <md-subheader class="md-primary">Meus Diários</md-subheader>
                         <div v-for="diario in diarios" class="viewport">
@@ -57,6 +34,7 @@
                             <md-divider class="md-inset"></md-divider>
                         </div>
                     </md-list>
+
                     <md-button class="md-raised md-primary" @click="setDone('first', 'second')">
                         Continuar
                         <md-icon>navigate_next</md-icon>
