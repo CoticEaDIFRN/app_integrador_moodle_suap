@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+from python_brfied.env import env, env_as_bool, env_as_list, env_as_int
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -25,8 +26,9 @@ SECRET_KEY = '!e^&bgz%5%n!_@oqkx2)^0!t6sex&r)qinv3m!oioh^0i=_^h9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+URL_PATH_PREFIX = env('URL_PATH_PREFIX', 'ege/integrador/')
 
 # Application definition
 
@@ -34,6 +36,8 @@ INSTALLED_APPS = [
     'sincronizacao',
     'ege_theme',
     
+    'django_extensions',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
