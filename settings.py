@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-from python_brfied.env import env, env_as_bool, env_as_list, env_as_int
+from sc4py.env import env, env_as_bool, env_as_list, env_as_int
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
